@@ -21,20 +21,20 @@ class DifferenceGame:
         self.found = []
         self.max_differences = 5
         
-        def load_image(self, path):
-            img = cv.imread(path)
+    def load_image(self, path):
+        img = cv.imread(path)
 
-            if img is None:
-                return False
+        if img is None:
+            return False
 
-            self.original = img
-            self.modified = img.copy()
+        self.original = img
+        self.modified = img.copy()
 
-            return True
-        
-        # Placeholder for difference generation logic
-        def create_differences(self):
-            print("Generating differences...")
+        return True
+    
+    # Placeholder for difference generation logic
+    def create_differences(self):
+        print("Generating differences...")
 
 # ---------------- GAME UI ---------------- #
 class GameUI:
@@ -68,29 +68,28 @@ class GameUI:
     # ---------------- LOAD IMAGE ---------------- #
     def load_image(self):
         print("Load image button clicked")
-
+        # Open file dialog to select image
         path = filedialog.askopenfilename()
 
         if not path:
             return
 
-        img = cv.imread(path)
-
-        if img is None:
+        # load image into game logic
+        if not self.game.load_image(path):
             messagebox.showerror("Error", "Failed to load image")
             return
 
-        # Convert image for display
-        tk_img = self.processor.convert(img)
+        # convert images for display
+        tk_img1 = self.processor.convert(self.game.original)
+        tk_img2 = self.processor.convert(self.game.modified)
 
-        # Show image in both labels
-        self.original_img_label.config(image=tk_img)
-        self.modified_img_label.config(image=tk_img)
+        # update UI with images
+        self.original_img_label.config(image=tk_img1)
+        self.modified_img_label.config(image=tk_img2)
 
-        # Keep reference (IMPORTANT)
-        self.original_img_label.image = tk_img
-        self.modified_img_label.image = tk_img
-
+        # keep reference to avoid garbage collection
+        self.original_img_label.image = tk_img1
+        self.modified_img_label.image = tk_img2
     # ---------------- REVEAL PLACEHOLDER ---------------- #
     def reveal(self):
         print("Reveal button clicked")
