@@ -14,6 +14,27 @@ class ImageProcessor:
 class DifferenceGame:
     def __init__(self):
         print("DifferenceGame class initialized")
+        # Initialize game state
+        self.original = None
+        self.modified = None
+        self.differences = []
+        self.found = []
+        self.max_differences = 5
+        
+        def load_image(self, path):
+            img = cv.imread(path)
+
+            if img is None:
+                return False
+
+            self.original = img
+            self.modified = img.copy()
+
+            return True
+        
+        # Placeholder for difference generation logic
+        def create_differences(self):
+            print("Generating differences...")
 
 # ---------------- GAME UI ---------------- #
 class GameUI:
