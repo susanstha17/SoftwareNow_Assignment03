@@ -21,7 +21,8 @@ class DifferenceGame:
         self.differences = []
         self.found = []
         self.max_differences = 5
-        
+
+    # function to load image and generate differences
     def load_image(self, path):
         img = cv.imread(path)
 
@@ -35,7 +36,7 @@ class DifferenceGame:
 
         return True
     
-    # Placeholder for difference generation logic
+    # function to create differences on the modified image
     def create_differences(self):
         self.modified = self.original.copy()
         self.differences = []
@@ -58,8 +59,20 @@ class DifferenceGame:
                 self.differences.append((x, y))
 
             attempts += 1
-            
     
+    # function to check if click is on a difference
+    def check_click(self, x, y):
+        for i, (dx, dy) in enumerate(self.differences):
+            if i in self.found:
+                continue
+
+            if abs(x - dx) < 30 and abs(y - dy) < 30:
+                self.found.append(i)
+                return True, (dx, dy)
+
+        return False, None
+    
+    # function to apply a random change at the given coordinates
     def apply_change(self, x, y):
         choice = random.choice(["circle", "rectangle", "invert"])
 
@@ -75,6 +88,7 @@ class DifferenceGame:
 
 # ---------------- GAME UI ---------------- #
 class GameUI:
+    # Initialize the UI and game logic
     def __init__(self, master):
         print("GameUI class initialized")
 
@@ -85,10 +99,10 @@ class GameUI:
         # ---------------- BUTTON FRAME ---------------- #
         button_frame = tk.Frame(master)
         button_frame.pack(pady=10)
-
+        # create buttons
         self.load_button = tk.Button(button_frame, text="Load Image", command=self.load_image)
         self.load_button.pack(side=tk.LEFT, padx=10)
-
+        
         self.reveal_button = tk.Button(button_frame, text="Reveal", command=self.reveal)
         self.reveal_button.pack(side=tk.LEFT, padx=10)
 
@@ -96,13 +110,19 @@ class GameUI:
         image_frame = tk.Frame(master)
         image_frame.pack()
 
+        # create labels for images
         self.original_img_label = tk.Label(image_frame)
         self.modified_img_label = tk.Label(image_frame)
 
+        # pack image labels
         self.original_img_label.pack(side=tk.LEFT, padx=10, pady=10)
         self.modified_img_label.pack(side=tk.RIGHT, padx=10, pady=10)
 
+        # add click event to modified image
+        self.modified_img_label.bind("<Button-1>", self.on_click)
+
     # ---------------- LOAD IMAGE ---------------- #
+    # function to load image and update UI
     def load_image(self):
         print("Load image button clicked")
         # Open file dialog to select image
@@ -127,6 +147,45 @@ class GameUI:
         # keep reference to avoid garbage collection
         self.original_img_label.image = tk_img1
         self.modified_img_label.image = tk_img2
+
+    # ---------------- CHECK CLICK ---------------- #
+    # function to check if click is on a difference
+    def on_click(self, event):
+        print("Image clicked")
+
+        if self.game.original is None:
+            return
+
+        # Get original image size
+        h, w = self.game.original.shape[:2]
+
+        # Convert click position (UI → actual image)
+        x = int(event.x * w / 400)
+        y = int(event.y * h / 400)
+
+        correct, pos = self.game.check_click(x, y)
+
+        if correct:
+            self.draw_circle(pos, "red")
+        else:
+            messagebox.showwarning("Wrong", "Try again!")
+
+    # function to draw a circle on the modified image at the given position
+    def draw_circle(self, pos, color):
+        x, y = pos
+
+        h, w = self.game.original.shape[:2]
+
+        # convert back to UI scale
+        x = int(x * 400 / w)
+        y = int(y * 400 / h)
+
+        # create a small dot marker (instead of canvas)
+        dot = tk.Label(self.master, bg=color)
+
+        # adjust position so it appears over image
+        dot.place(x=x + 60, y=y + 120, width=8, height=8)
+        
     # ---------------- REVEAL PLACEHOLDER ---------------- #
     def reveal(self):
         print("Reveal button clicked")
