@@ -1,3 +1,4 @@
+import random
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import cv2 as cv
@@ -30,11 +31,47 @@ class DifferenceGame:
         self.original = img
         self.modified = img.copy()
 
+        self.create_differences()
+
         return True
     
     # Placeholder for difference generation logic
     def create_differences(self):
-        print("Generating differences...")
+        self.modified = self.original.copy()
+        self.differences = []
+        self.found = []
+
+        h, w = self.original.shape[:2]
+
+        attempts = 0
+
+        while len(self.differences) < self.max_differences and attempts < 200:
+            x = random.randint(50, w - 50)
+            y = random.randint(50, h - 50)
+
+            # avoid overlap
+            if all(abs(x - dx) > 60 and abs(y - dy) > 60 for dx, dy in self.differences):
+
+                # apply visible difference
+                self.apply_change(x, y)
+
+                self.differences.append((x, y))
+
+            attempts += 1
+            
+    
+    def apply_change(self, x, y):
+        choice = random.choice(["circle", "rectangle", "invert"])
+
+        if choice == "circle":
+            cv.circle(self.modified, (x, y), 25, (0, 0, 255), -1)
+
+        elif choice == "rectangle":
+            cv.rectangle(self.modified, (x - 25, y - 25), (x + 25, y + 25), (0, 255, 0), -1)
+
+        elif choice == "invert":
+            roi = self.modified[y - 25:y + 25, x - 25:x + 25]
+            self.modified[y - 25:y + 25, x - 25:x + 25] = 255 - roi
 
 # ---------------- GAME UI ---------------- #
 class GameUI:
