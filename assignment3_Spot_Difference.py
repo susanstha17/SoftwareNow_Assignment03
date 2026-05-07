@@ -91,7 +91,8 @@ class GameUI:
     # Initialize the UI and game logic
     def __init__(self, master):
         print("GameUI class initialized")
-
+        self.mistakes = 0
+        self.max_mistakes = 3
         self.master = master
         self.game = DifferenceGame()
         self.processor = ImageProcessor()
@@ -105,7 +106,9 @@ class GameUI:
         
         self.reveal_button = tk.Button(button_frame, text="Reveal", command=self.reveal)
         self.reveal_button.pack(side=tk.LEFT, padx=10)
-
+        # create status label
+        self.status_label = tk.Label(master, text="Load an image to start")
+        self.status_label.pack()
         # ---------------- IMAGE FRAME ---------------- #
         image_frame = tk.Frame(master)
         image_frame.pack()
@@ -147,6 +150,8 @@ class GameUI:
         # keep reference to avoid garbage collection
         self.original_img_label.image = tk_img1
         self.modified_img_label.image = tk_img2
+        self.mistakes = 0
+        self.update_status()
 
     # ---------------- CHECK CLICK ---------------- #
     # function to check if click is on a difference
@@ -168,8 +173,12 @@ class GameUI:
         if correct:
             self.draw_circle(pos, "red")
         else:
-            messagebox.showwarning("Wrong", "Try again!")
+            self.mistakes += 1
+            messagebox.showwarning("Wrong", f"Mistakes: {self.mistakes}/{self.max_mistakes}")
 
+        self.update_status()
+        self.check_game()
+        
     # function to draw a circle on the modified image at the given position
     def draw_circle(self, pos, color):
         x, y = pos
@@ -185,7 +194,22 @@ class GameUI:
 
         # adjust position so it appears over image
         dot.place(x=x + 60, y=y + 120, width=8, height=8)
-        
+
+    # function to update the status label with remaining differences and mistakes
+    def update_status(self):
+        remaining = self.game.max_differences - len(self.game.found)
+        self.status_label.config(
+            text=f"Remaining: {remaining} | Mistakes: {self.mistakes}/{self.max_mistakes}"
+        ) 
+
+    # function to check if game is over or won
+    def check_game(self):
+        if self.mistakes >= self.max_mistakes:
+            messagebox.showerror("Game Over", "Too many mistakes!")
+            return
+
+        if len(self.game.found) == self.game.max_differences:
+            messagebox.showinfo("Success", "You found all differences!")      
     # ---------------- REVEAL PLACEHOLDER ---------------- #
     def reveal(self):
         print("Reveal button clicked")
