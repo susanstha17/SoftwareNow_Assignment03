@@ -210,9 +210,15 @@ class GameUI:
 
         if len(self.game.found) == self.game.max_differences:
             messagebox.showinfo("Success", "You found all differences!")      
-    # ---------------- REVEAL PLACEHOLDER ---------------- #
+    
+    # function to reveal all remaining differences by drawing blue circles
     def reveal(self):
-        print("Reveal button clicked")
+        if self.game.original is None:
+            return
+        # draw blue circles on all remaining differences
+        for i, pos in enumerate(self.game.differences):
+            if i not in self.game.found:
+                self.draw_circle(pos, "blue")
 
 # ---------------- MAIN APPLICATION ---------------- #
 if __name__ == "__main__":
