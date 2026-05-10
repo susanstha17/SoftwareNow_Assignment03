@@ -113,16 +113,15 @@ class GameUI:
         image_frame = tk.Frame(master)
         image_frame.pack()
 
-        # create labels for images
-        self.original_img_label = tk.Label(image_frame)
-        self.modified_img_label = tk.Label(image_frame)
+        # create canvases for original and modified images
+        self.canvas1 = tk.Canvas(image_frame, width=400, height=400, bg="gray")
+        self.canvas2 = tk.Canvas(image_frame, width=400, height=400, bg="gray")
+        # pack canvases side by side
+        self.canvas1.pack(side=tk.LEFT, padx=10, pady=10)
+        self.canvas2.pack(side=tk.RIGHT, padx=10, pady=10)
 
-        # pack image labels
-        self.original_img_label.pack(side=tk.LEFT, padx=10, pady=10)
-        self.modified_img_label.pack(side=tk.RIGHT, padx=10, pady=10)
-
-        # add click event to modified image
-        self.modified_img_label.bind("<Button-1>", self.on_click)
+        # click detection on modified image
+        self.canvas2.bind("<Button-1>", self.on_click)
 
     # ---------------- LOAD IMAGE ---------------- #
     # function to load image and update UI
@@ -143,13 +142,19 @@ class GameUI:
         tk_img1 = self.processor.convert(self.game.original)
         tk_img2 = self.processor.convert(self.game.modified)
 
-        # update UI with images
-        self.original_img_label.config(image=tk_img1)
-        self.modified_img_label.config(image=tk_img2)
+        # clear old drawings/images
+        self.canvas1.delete("all")
+        self.canvas2.delete("all")
 
-        # keep reference to avoid garbage collection
-        self.original_img_label.image = tk_img1
-        self.modified_img_label.image = tk_img2
+        # display images
+        self.canvas1.create_image(0, 0, anchor="nw", image=tk_img1)
+        self.canvas2.create_image(0, 0, anchor="nw", image=tk_img2)
+
+        # keep references
+        self.canvas1.image = tk_img1
+        self.canvas2.image = tk_img2
+       
+        # reset game state
         self.mistakes = 0
         self.update_status()
 
@@ -157,7 +162,7 @@ class GameUI:
     # function to check if click is on a difference
     def on_click(self, event):
         print("Image clicked")
-
+        # ignore clicks if no image loaded
         if self.game.original is None:
             return
 
@@ -185,16 +190,24 @@ class GameUI:
 
         h, w = self.game.original.shape[:2]
 
-        # convert back to UI scale
+        # convert actual image coordinates → canvas coordinates
         x = int(x * 400 / w)
         y = int(y * 400 / h)
 
-        # create a small dot marker (instead of canvas)
-        dot = tk.Label(self.master, bg=color)
-
-        # adjust position so it appears over image
-        dot.place(x=x + 60, y=y + 120, width=8, height=8)
-
+        # draw on both canvases
+        self.canvas1.create_oval(
+            x - 15, y - 15,
+            x + 15, y + 15,
+            outline=color,
+            width=3
+        )
+        # draw on modified image canvas
+        self.canvas2.create_oval(
+            x - 15, y - 15,
+            x + 15, y + 15,
+            outline=color,
+            width=3
+        )
     # function to update the status label with remaining differences and mistakes
     def update_status(self):
         remaining = self.game.max_differences - len(self.game.found)
