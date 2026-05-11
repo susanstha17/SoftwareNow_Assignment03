@@ -93,6 +93,7 @@ class GameUI:
         print("GameUI class initialized")
         self.mistakes = 0
         self.max_mistakes = 3
+        self.game_over = False
         self.master = master
         self.game = DifferenceGame()
         self.processor = ImageProcessor()
@@ -157,11 +158,16 @@ class GameUI:
         # reset game state
         self.mistakes = 0
         self.update_status()
+        self.game_over = False
 
     # ---------------- CHECK CLICK ---------------- #
     # function to check if click is on a difference
     def on_click(self, event):
         print("Image clicked")
+        # ignore clicks if game is over
+        if self.game_over:
+            messagebox.showinfo("Game Over", "Please load a new image to play again.")
+            return
         # ignore clicks if no image loaded
         if self.game.original is None:
             return
@@ -217,12 +223,15 @@ class GameUI:
 
     # function to check if game is over or won
     def check_game(self):
+        # check if too many mistakes
         if self.mistakes >= self.max_mistakes:
+            self.game_over = True
             messagebox.showerror("Game Over", "Too many mistakes!")
             return
-
+        # check if all differences found
         if len(self.game.found) == self.game.max_differences:
-            messagebox.showinfo("Success", "You found all differences!")      
+            self.game_over = True
+            messagebox.showinfo("Success", "You found all differences!")    
     
     # function to reveal all remaining differences by drawing blue circles
     def reveal(self):
