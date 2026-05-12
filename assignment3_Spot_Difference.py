@@ -5,21 +5,46 @@ import cv2 as cv
 from PIL import Image, ImageTk
 
 # ---------------- IMAGE PROCESSOR ---------------- #
+# This class handles image conversion for displaying
+# OpenCV images inside Tkinter canvases
 class ImageProcessor:
+    
+    # Convert OpenCV image into Tkinter compatible image
     def convert(self, img, size=(400, 400)):
+        
+        # Convert image from BGR (OpenCV default)
+        # to RGB format for Tkinter display
         img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        
+        # Resize image so both images fit properly in GUI
         img = cv.resize(img, size)
+        
+        # Convert NumPy array into Tkinter-compatible image
         return ImageTk.PhotoImage(Image.fromarray(img))
 
-# ---------------- GAME LOGIC ---------------- #
+# --- GAME LOGIC --- #
+# This class contains all game logic including:
+# - image loading
+# - difference generation
+# - click checking
+# - tracking found differences
 class DifferenceGame:
+    
     def __init__(self):
         print("DifferenceGame class initialized")
-        # Initialize game state
+        # Store original image
         self.original = None
+        
+        # Store modified image with differences
         self.modified = None
+        
+        # Store coordinates of generated differences
         self.differences = []
+        
+        # Store indexes of already found differences
         self.found = []
+        
+        # Total number of differences to generate
         self.max_differences = 5
 
     # function to load image and generate differences
@@ -46,11 +71,12 @@ class DifferenceGame:
 
         attempts = 0
 
+        # Continue until required differences are created
         while len(self.differences) < self.max_differences and attempts < 200:
             x = random.randint(50, w - 50)
             y = random.randint(50, h - 50)
 
-            # avoid overlap
+            # avoid overlap between differences
             if all(abs(x - dx) > 60 and abs(y - dy) > 60 for dx, dy in self.differences):
 
                 # apply visible difference
@@ -66,6 +92,7 @@ class DifferenceGame:
             if i in self.found:
                 continue
 
+            # Check if user clicked close to difference
             if abs(x - dx) < 30 and abs(y - dy) < 30:
                 self.found.append(i)
                 return True, (dx, dy)
@@ -99,8 +126,10 @@ class GameUI:
         self.processor = ImageProcessor()
 
         # ---------------- BUTTON FRAME ---------------- #
+        # Frame used to organize top control buttons
         button_frame = tk.Frame(master)
         button_frame.pack(pady=10)
+        
         # create buttons
         self.load_button = tk.Button(button_frame, text="Load Image", command=self.load_image)
         self.load_button.pack(side=tk.LEFT, padx=10)
@@ -110,6 +139,7 @@ class GameUI:
         # create status label
         self.status_label = tk.Label(master, text="Load an image to start")
         self.status_label.pack()
+        
         # ---------------- IMAGE FRAME ---------------- #
         image_frame = tk.Frame(master)
         image_frame.pack()
@@ -228,7 +258,7 @@ class GameUI:
             self.game_over = True
             messagebox.showerror("Game Over", "Too many mistakes!")
             return
-        # check if all differences found
+         # Win game if all differences found
         if len(self.game.found) == self.game.max_differences:
             self.game_over = True
             messagebox.showinfo("Success", "You found all differences!")    
@@ -249,4 +279,5 @@ if __name__ == "__main__":
     root.geometry("900x500")
 
     app = GameUI(root)
+    # Start Tkinter event loop
     root.mainloop()
